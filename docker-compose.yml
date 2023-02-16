@@ -1,6 +1,6 @@
 # Set up a sinlge Kafka broker
 
-name: mole
+name: kafka_101
 version: '3'
 services:
   zookeeper:
@@ -38,7 +38,6 @@ services:
     depends_on:
       - zookeeper
       - broker
-      - kafka-connect
   
   kafka-control-center:
     image: confluentinc/cp-enterprise-control-center:7.3.1
@@ -46,8 +45,6 @@ services:
     container_name: kafka-control-center
     depends_on:
       - broker
-      - kafka-connect
-      #- kafka-ksqldb-server
     ports:
       - "9021:9021"
     environment:
