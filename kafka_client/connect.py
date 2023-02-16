@@ -1,9 +1,11 @@
 import yaml
-from datetime import datetime, timedelta
+from datetime import datetime
 from confluent_kafka import Consumer
 import ast
+import pandas as pd
+from sqlalchemy import create_engine
+import psycopg2
 
-DAG_NAME = "DAG_1"
 # Kafka configs
 CONSUMER_TIME = 30
 KAFKA_TOPICS = []
@@ -16,7 +18,7 @@ KAFKA_CONFIG = {
     #  'ssl.certificate.location': 'keys/controlemalhas-truststore.pem',
     
     #'session.timeout.ms': '45000',
-    'group.id': f'{DAG_NAME}',
+    'group.id': 'sink-connector',
     #'auto.offset.reset': 'latest',
     
     'auto.offset.reset' : 'earliest',
@@ -26,22 +28,36 @@ KAFKA_CONFIG = {
     'max.poll.interval.ms' : 30000,
     'session.timeout.ms' : 30000,
 }
+# Database
+# postgres://user:password@host/database
+DB = "postgresql://postgres:postgres@postgres:5432/postgres"
 
-def get_topics_from_dag(dag:str):
+
+def get_topics():
     """
     Read topics.yaml file and returns a dict containing all topics
     Args:
-        dag (str) : name of the DAG to be executed
+        None
     Returns:
-        names (list): list of topic name
+        data (dict): dictionary of topics
             example:
-                names = ['topic_1', 'topic_2' ... 'topic_n']
+                data = {   
+                    'topic_name': "my-topic-0"
+                    'n_partitions': 2
+                    'replication_factor': 1
+                    'config': {
+                        'compression.type': 'gzip'
+                    }
+                }
     """
-    with open("./dags.yaml", "r") as file:
-        data = yaml.load(file, Loader=yaml.FullLoader)
+    with open("./topics.yaml", "r") as file:
+        topics = yaml.load(file, Loader=yaml.FullLoader)
 
-    #  Get topic names
-    return data[dag]['topics']
+    topic_names = []
+    for topic in topics:
+            topic_names.append(topics[topic]['topic_name'])
+    print("# topic names", topic_names)
+    return topic_names
 
 def consume_loop(consumer):
     """
@@ -98,17 +114,27 @@ def consume_loop(consumer):
         print(f"Consumer Closed!")
     return messages
 
-def consumer_main():
+def save_data(message):
+    # create db engine
+    engine = create_engine(DB)
+    # transform messages into dataframe
+    df = pd.DataFrame.from_dict(message)
+    # insert data
+    df.to_sql('process_data', con = engine, if_exists='replace')
+    return True
+
+def connect_main():
     try:
         # Create Consumer client
-        consumer = Consumer(KAFKA_CONFIG)
-        
+        consumer = Consumer(KAFKA_CONFIG) 
         # get topics from topics.yaml
-        topics = get_topics_from_dag(DAG_NAME)
+        topics = get_topics()
         # subscribe to topics
         consumer.subscribe(topics)
         # consume messages
-        message = consume_loop(consumer)
+        messages = consume_loop(consumer)
+        # save data to Database
+        save_data(messages)
    
 
     except KeyboardInterrupt:

@@ -19,10 +19,11 @@ def delivery_report(err, msg):
     """ Called once for each message produced to indicate delivery result.
         Triggered by poll() or flush(). """
     if err:
-            print('ERROR: Message failed delivery: {}'.format(err))
+        print('ERROR: Message failed delivery: {}'.format(err))
     else:
-        print("Produced event to topic {topic}".format(
-            topic=msg.topic()))
+        # print("Produced event to topic {topic}".format(
+        #     topic=msg.topic()))
+        pass
 
 def produce_to_topic(producer, data):
     
