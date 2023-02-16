@@ -115,13 +115,26 @@ def consume_loop(consumer):
     return messages
 
 def save_data(message):
-    # create db engine
-    engine = create_engine(DB)
-    # transform messages into dataframe
-    df = pd.DataFrame.from_dict(message)
-    # insert data
-    df.to_sql('process_data', con = engine, if_exists='replace')
-    return True
+    """
+    Save messages messages to a database
+
+    Args:
+        message (list):list of dicts (kafka messages)
+    Returns:
+        bool : true
+    """
+    try:
+        # create db engine
+        engine = create_engine(DB)
+        # transform messages into dataframe
+        df = pd.DataFrame.from_dict(message)
+        # insert data
+        df.to_sql('process_data', con = engine, if_exists="append", index=False)
+    except Exception as e:
+        print(e)
+        return False
+    else:
+        return True
 
 def connect_main():
     try:
@@ -134,8 +147,7 @@ def connect_main():
         # consume messages
         messages = consume_loop(consumer)
         # save data to Database
-        save_data(messages)
-   
-
+        return save_data(messages)
+         
     except KeyboardInterrupt:
         print('Canceled by user.')
