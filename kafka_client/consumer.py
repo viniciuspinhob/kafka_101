@@ -8,7 +8,7 @@ DAG_NAME = "DAG_1"
 CONSUMER_TIME = 30
 KAFKA_TOPICS = []
 KAFKA_CONFIG = {
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': 'broker:29092',
     'sasl.mechanisms': 'PLAIN',
     # 'security.protocol': 'SSL',
     #  'ssl.ca.location': 'keys/controlemalhas-CARoot.pem',
@@ -16,7 +16,7 @@ KAFKA_CONFIG = {
     #  'ssl.certificate.location': 'keys/controlemalhas-truststore.pem',
     
     #'session.timeout.ms': '45000',
-    'group.id': f'severoll.{DAG_NAME}',
+    'group.id': f'{DAG_NAME}',
     #'auto.offset.reset': 'latest',
     
     'auto.offset.reset' : 'earliest',
@@ -101,16 +101,15 @@ def consume_loop(consumer):
 
 def consumer_main():
     try:
-        while True:
-            # Create Consumer client
-            consumer = Consumer(KAFKA_CONFIG)
-            
-            # get topics from topics.yaml
-            topics = get_topics_from_dag(DAG_NAME)
-            # subscribe to topics
-            consumer.subscribe(topics)
-            # consume messages
-            message = consume_loop(consumer)
+        # Create Consumer client
+        consumer = Consumer(KAFKA_CONFIG)
+        
+        # get topics from topics.yaml
+        topics = get_topics_from_dag(DAG_NAME)
+        # subscribe to topics
+        consumer.subscribe(topics)
+        # consume messages
+        message = consume_loop(consumer)
    
 
     except KeyboardInterrupt:

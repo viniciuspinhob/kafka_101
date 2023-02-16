@@ -2,10 +2,10 @@ import yaml
 from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource
 from producer import producer_main
 from consumer import consumer_main
+import time
 
 KAFKA_CONFIG = {
-     'bootstrap.servers': 'localhost:9092',
-     'group.id': 'kafka_101',
+     'bootstrap.servers': 'broker:29092',
      # 'security.protocol': None,
      'sasl.mechanisms': 'PLAIN',
      # 'sasl.username': '<CLUSTER_API_KEY>', 
@@ -72,7 +72,7 @@ def create_topic(admin, topic):
         topic = str(topic['topic_name']), 
         num_partitions = int(topic['n_partitions']), 
         replication_factor = int(topic['replication_factor']),
-        config = topic['config']
+        # config = topic['config']
     ) 
     result_dict = admin.create_topics([new_topic])
     # return result
@@ -101,7 +101,6 @@ if __name__ == '__main__':
     try:
         # Create Admin client
         admin = AdminClient(KAFKA_CONFIG)
-        print("@ Existing topics :: ", list_existing_topics(admin))
         
         # get topics from topics.yaml
         topics = get_topics()
@@ -110,14 +109,21 @@ if __name__ == '__main__':
         for topic in topics:
             topic = topics[topic]
             if not topic_exists(admin, topic['topic_name']):
+                print("@ Creating topic: ", topic['topic_name'])
                 create_topic(admin, topic)
+        print("@ Existing topics:", list_existing_topics(admin))
 
-        # Start Producer
-        print("@ Start kafka producer ...")
-        producer_main(KAFKA_CONFIG)
-        # Start Consumer
-        print("@ Start kafka consumer ...")
-        consumer_main()
-
+        while True:
+            # Start Producer
+            print("@ Start kafka producer ...")
+            producer_main()
+            # Start Consumer
+            print("@ Start kafka consumer ...")
+            consumer_main()
+            # sleep
+            time.sleep(1)
+            
     except KeyboardInterrupt:
         print('Canceled by user.')
+    except Exception as e:
+        print(e)

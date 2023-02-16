@@ -2,9 +2,17 @@ from confluent_kafka import Producer
 from datetime import datetime
 import json
 import random
-import time
 
 TOPIC_NAME = "my-topic-1"
+KAFKA_CONFIG = {
+     'bootstrap.servers': 'broker:29092',
+     # 'security.protocol': None,
+     'group.id': 'consumer_1',
+     'sasl.mechanisms': 'PLAIN',
+     # 'sasl.username': '<CLUSTER_API_KEY>', 
+     # 'sasl.password': '<CLUSTER_API_SECRET>'
+}
+
 
 def delivery_report(err, msg):
     """ Called once for each message produced to indicate delivery result.
@@ -25,22 +33,20 @@ def produce_to_topic(producer, data):
     data = json.dumps(data).encode('utf-8')
     producer.produce(TOPIC_NAME, data, callback=delivery_report) 
 
-def producer_main(config):
+def producer_main():
     try:
-        producer = Producer(config)
-        while True:
-            
-            data = {
-                'timestamp': str(datetime.now()), 
-                'tagname' : random.choice(['tag1', 'tag2', 'tag3']),
-                'value' : random.random(), 
-                'quality' : random.choice(['Good', 'Neutral', 'Bad']) 
-            }
-            
-            produce_to_topic(producer, data)
-            # Wait for any outstanding messages to be delivered and delivery report
-            # callbacks to be triggered.
-            producer.flush()
-            time.sleep(5)
+        producer = Producer(KAFKA_CONFIG)  
+        data = {
+            'timestamp': str(datetime.now()), 
+            'tagname' : random.choice(['tag1', 'tag2', 'tag3']),
+            'value' : random.random(), 
+            'quality' : random.choice(['Good', 'Neutral', 'Bad']) 
+        }
+        
+        produce_to_topic(producer, data)
+        # Wait for any outstanding messages to be delivered and delivery report
+        # callbacks to be triggered.
+        producer.flush()
+
     except KeyboardInterrupt:
         print('Canceled by user.')
