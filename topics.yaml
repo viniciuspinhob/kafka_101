@@ -1,0 +1,18 @@
+# insert here your kafka topic
+
+topic_0:
+  topic_name: "my-topic-0"
+  n_partitions: 2
+  replication_factor: 1
+  config: {
+      'compression.type': 'gzip'
+    }
+
+topic_1:
+  topic_name: "my-topic-1"
+  n_partitions: 1
+  replication_factor: 1
+  config: {
+      'cleanup.policy': 'compact'
+    }
+  

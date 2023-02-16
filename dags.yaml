@@ -1,0 +1,7 @@
+# insert here your kafka topic
+
+DAG_1:
+  topics: 
+    - "my-topic-1"
+
+
