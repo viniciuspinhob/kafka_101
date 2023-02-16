@@ -1,7 +1,7 @@
 
 --  Create Postgree table
 CREATE TABLE IF NOT EXISTS process_data (
-    timestamp TIMESTAMPTZ NOT NULL,
+    timestamp TEXT NOT NULL,
     tagname TEXT NOT NULL,
     value DOUBLE PRECISION NOT NULL,
     quality TEXT NOT NULL

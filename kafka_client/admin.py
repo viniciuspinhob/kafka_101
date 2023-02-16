@@ -2,6 +2,7 @@ import yaml
 from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource
 from producer import producer_main
 from consumer import consumer_main
+from connect import connect_main
 import time
 
 KAFKA_CONFIG = {
@@ -122,6 +123,9 @@ if __name__ == '__main__':
             consumer_main()
             # sleep
             time.sleep(1)
+            # Start Connect
+            print("@ Start kafka connector ...")
+            connect_main()
             
     except KeyboardInterrupt:
         print('Canceled by user.')
