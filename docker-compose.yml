@@ -1,0 +1,80 @@
+# Set up a sinlge Kafka broker
+
+name: mole
+version: '3'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zk-data:/var/lib/zookeeper/data
+      - zk-txn-logs:/var/lib/zookeeper/log 
+
+  broker:
+    image: confluentinc/cp-kafka:7.3.1
+    container_name: broker
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+  
+  kafka-client:
+    image: kafka_client:latest
+    container_name: kafka_client
+    depends_on:
+      - zookeeper
+      - broker
+      - kafka-connect
+  
+  kafka-control-center:
+    image: confluentinc/cp-enterprise-control-center:7.3.1
+    hostname: control-center
+    container_name: kafka-control-center
+    depends_on:
+      - broker
+      - kafka-connect
+      #- kafka-ksqldb-server
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+        - POSTGRES_DB=postgres
+    ports:
+        - 5432:5432
+    volumes:
+        - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+volumes:
+  zk-data: {}
+  zk-txn-logs: {}
+  kafka-data: {}
+  # postgres-pgdata-data: {}
