@@ -2,6 +2,7 @@ from confluent_kafka import Producer
 from datetime import datetime
 import json
 import random
+import time
 
 TOPIC_NAME = "my-topic-1"
 KAFKA_CONFIG = {
@@ -36,14 +37,19 @@ def produce_to_topic(producer, data):
 def producer_main():
     try:
         producer = Producer(KAFKA_CONFIG)  
-        data = {
-            'timestamp': str(datetime.now()), 
-            'tagname' : random.choice(['tag1', 'tag2', 'tag3']),
-            'value' : random.random(), 
-            'quality' : random.choice(['Good', 'Neutral', 'Bad']) 
-        }
-        
-        produce_to_topic(producer, data)
+
+        # produce data for 45 seconds
+        time_zero = datetime.now()
+        while ((datetime.now() - time_zero).seconds) <= 45:
+            data = {
+                'timestamp': str(datetime.now()), 
+                'tagname' : random.choice(['tag1', 'tag2', 'tag3']),
+                'value' : random.random(), 
+                'quality' : random.choice(['Good', 'Neutral', 'Bad']) 
+            }
+            
+            produce_to_topic(producer, data)
+            time.sleep(1)
         # Wait for any outstanding messages to be delivered and delivery report
         # callbacks to be triggered.
         producer.flush()
