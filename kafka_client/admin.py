@@ -1,6 +1,5 @@
 import yaml
 from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource
-
 from producer import producer_main
 from consumer import consumer_main
 

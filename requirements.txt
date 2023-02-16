@@ -1,0 +1,6 @@
+confluent-kafka==2.0.2
+PyYAML==6.0
+datetime
+json
+time
+ast
