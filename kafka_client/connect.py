@@ -30,7 +30,8 @@ KAFKA_CONFIG = {
 }
 # Database
 # postgres://user:password@host/database
-DB = "postgresql://postgres:postgres@postgres:5432/postgres"
+DB_POSTGRES = "postgresql://postgres:postgres@postgres:5432/postgres"
+DB_TIMESCALE = "postgresql://postgres:postgres@timescaledb:5432/postgres"
 
 
 def get_topics():
@@ -114,7 +115,7 @@ def consume_loop(consumer):
         print(f"Consumer Closed!")
     return messages
 
-def save_data(message):
+def save_data(df, database):
     """
     Save messages messages to a database
 
@@ -125,9 +126,7 @@ def save_data(message):
     """
     try:
         # create db engine
-        engine = create_engine(DB)
-        # transform messages into dataframe
-        df = pd.DataFrame.from_dict(message)
+        engine = create_engine(database)
         # insert data
         df.to_sql('process_data', con = engine, if_exists="append", index=False)
     except Exception as e:
@@ -146,8 +145,11 @@ def connect_main():
         consumer.subscribe(topics)
         # consume messages
         messages = consume_loop(consumer)
+        # transform messages into dataframe
+        df = pd.DataFrame.from_dict(messages)
         # save data to Database
-        return save_data(messages)
+        save_data(df, DB_POSTGRES)
+        save_data(df, DB_TIMESCALE)
          
     except KeyboardInterrupt:
         print('Canceled by user.')
