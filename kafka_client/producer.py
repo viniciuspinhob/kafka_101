@@ -34,6 +34,7 @@ def produce_to_topic(producer, data):
     # message has been successfully delivered or failed permanently.
     data = json.dumps(data).encode('utf-8')
     producer.produce(TOPIC_NAME, data, callback=delivery_report) 
+    producer.produce("my-topic-0", data, callback=delivery_report)
 
 def producer_main():
     try:
