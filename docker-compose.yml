@@ -101,10 +101,11 @@ services:
         - 5432:5432
     volumes:
         - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+        - postgres-data:/var/lib/postgresql/data
 
 
 volumes:
   zk-data: {}
   zk-txn-logs: {}
   kafka-data: {}
-  # postgres-pgdata-data: {}
+  postgres-data: {}
