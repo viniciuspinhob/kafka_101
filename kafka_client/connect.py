@@ -16,17 +16,17 @@ KAFKA_CONFIG = {
     #  'ssl.ca.location': 'keys/controlemalhas-CARoot.pem',
     #  'ssl.key.location': 'keys/controlemalhas-keystoreKey.pem',
     #  'ssl.certificate.location': 'keys/controlemalhas-truststore.pem',
-    
-    #'session.timeout.ms': '45000',
+
+    # 'session.timeout.ms': '45000',
     'group.id': 'sink-connector',
-    #'auto.offset.reset': 'latest',
-    
-    'auto.offset.reset' : 'earliest',
-    'enable.auto.commit' : False,
-    #'max.poll.records' : 5000,
-    'heartbeat.interval.ms' : 30000,
-    'max.poll.interval.ms' : 30000,
-    'session.timeout.ms' : 30000,
+    # 'auto.offset.reset': 'latest',
+
+    'auto.offset.reset': 'earliest',
+    'enable.auto.commit': False,
+    # 'max.poll.records' : 5000,
+    'heartbeat.interval.ms': 30000,
+    'max.poll.interval.ms': 30000,
+    'session.timeout.ms': 30000,
 }
 # Database
 # postgres://user:password@host/database
@@ -56,9 +56,10 @@ def get_topics():
 
     topic_names = []
     for topic in topics:
-            topic_names.append(topics[topic]['topic_name'])
+        topic_names.append(topics[topic]['topic_name'])
     print("# topic names", topic_names)
     return topic_names
+
 
 def consume_loop(consumer):
     """
@@ -90,7 +91,7 @@ def consume_loop(consumer):
                 running = False
                 break
             if msg is None:
-                empty_messages = empty_messages +1
+                empty_messages = empty_messages + 1
                 pass
             elif msg.error():
                 # logger.error('error: {}'.format(msg.error()))
@@ -101,7 +102,7 @@ def consume_loop(consumer):
                 data = {
                     'tagname': message_data['tagname'],
                     'value': message_data['value'],
-                    'timestamp': message_data['timestamp'], 
+                    'timestamp': message_data['timestamp'],
                     'quality': message_data['quality']
                 }
                 messages.append(data)
@@ -114,6 +115,7 @@ def consume_loop(consumer):
         consumer.close()
         print(f"Consumer Closed!")
     return messages
+
 
 def save_data(df, database):
     """
@@ -128,17 +130,19 @@ def save_data(df, database):
         # create db engine
         engine = create_engine(database)
         # insert data
-        df.to_sql('process_data', con = engine, if_exists="append", index=False)
+        df.to_sql('process_data', con=engine, if_exists="append",
+                  index=False, method='multi')
     except Exception as e:
         print(e)
         return False
     else:
         return True
 
+
 def connect_main():
     try:
         # Create Consumer client
-        consumer = Consumer(KAFKA_CONFIG) 
+        consumer = Consumer(KAFKA_CONFIG)
         # get topics from topics.yaml
         topics = get_topics()
         # subscribe to topics
@@ -150,6 +154,6 @@ def connect_main():
         # save data to Database
         save_data(df, DB_POSTGRES)
         save_data(df, DB_TIMESCALE)
-         
+
     except KeyboardInterrupt:
         print('Canceled by user.')
